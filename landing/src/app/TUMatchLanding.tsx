@@ -29,16 +29,23 @@ export default function TUMatchLanding() {
 
     setStatus("loading");
     try {
-      // TODO: replace with your real endpoint later:
-      // await fetch("/api/waitlist", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ email: clean }),
-      // });
+		const res = await fetch("/api/waitlist", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ email: clean }),
+		});
 
-      await new Promise((r) => setTimeout(r, 600)); // fake success
+		const data = await res.json();
+
+		if (!res.ok) {
+			setStatus("error");
+			setMessage(data?.error ?? "Something went wrong.");
+			return;
+		}
       setStatus("success");
-      setMessage("We’ll let you in when we launch.");
+      setMessage("We will notify you when we launch!");
       setEmail("");
     } catch {
       setStatus("error");
@@ -64,6 +71,10 @@ export default function TUMatchLanding() {
 
           {/* hero */}
           <section className="heroSection" style={styles.hero}>
+            <div className="heroBadge" style={styles.badge}>
+              <span style={styles.badgeText}>Early Access</span>
+            </div>
+
             <h1 className="heroTitle" style={styles.hottest}>
               <span className="heroTitleLine1">the hottest app</span>{" "}
               <span className="heroTitleLine2">on campus</span>
@@ -74,9 +85,7 @@ export default function TUMatchLanding() {
             <p className="heroSub" style={styles.sub}>
               Scroll what’s happening in Heilbronn in the next 24 hours.
             </p>
-            <p className="heroStatementSoft" style={styles.statementSoft}>
-              Join events & <span style={styles.underlined}>meet new people today</span>.
-            </p>
+            <p className="heroStatementSoft" style={styles.statementSoft}>Join events & meet new people today.</p>
 
             <form className="heroForm" onSubmit={onSubmit} style={styles.form}>
               <div className="heroInputRow" style={styles.inputRow}>
@@ -106,6 +115,17 @@ export default function TUMatchLanding() {
                 </button>
               </div>
             </form>
+            {message && (
+              <p
+                style={{
+                  ...styles.formMessage,
+                  ...(status === "success" ? styles.formMessageSuccess : {}),
+                  ...(status === "error" ? styles.formMessageError : {}),
+                }}
+              >
+                {message}
+              </p>
+            )}
           </section>
         </div>
       </main>
@@ -118,6 +138,11 @@ export default function TUMatchLanding() {
           .heroTitle {
             margin-top: -14px !important;
             font-size: clamp(30px, 11vw, 40px) !important;
+          }
+
+          .heroBadge {
+            margin-top: -10px !important;
+            margin-bottom: 20px !important;
           }
 
           .heroTitleLine1,
@@ -303,6 +328,26 @@ const styles: Record<string, React.CSSProperties> = {
     boxSizing: "border-box",
     textAlign: "center",
   },
+  badge: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "fit-content",
+    minHeight: 38,
+    padding: "8px 18px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.18)",
+    background: "rgba(8,11,18,0.72)",
+    boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.04), 0 0 18px rgba(0,0,0,0.3)",
+    margin: "0 auto 16px",
+  },
+  badgeText: {
+    fontSize: 14,
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+    color: "rgba(236,239,246,0.94)",
+    fontWeight: 700,
+  },
 
   hottest: {
     position: "relative",
@@ -341,12 +386,6 @@ const styles: Record<string, React.CSSProperties> = {
     margin: "12px 0 0",
     fontSize: "clamp(18px, 2.2vw, 21px)",
     color: "rgba(230,232,238,0.70)",
-  },
-  underlined: {
-    textDecoration: "underline",
-    textDecorationColor: "rgba(255,0,61,0.75)",
-    textDecorationThickness: 2,
-    textUnderlineOffset: 3,
   },
 
   form: {
@@ -402,5 +441,16 @@ const styles: Record<string, React.CSSProperties> = {
     opacity: 0.5,
     cursor: "not-allowed",
     boxShadow: "none",
+  },
+  formMessage: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "rgba(230,232,238,0.78)",
+  },
+  formMessageSuccess: {
+    color: "rgba(180,255,210,0.92)",
+  },
+  formMessageError: {
+    color: "rgba(255,190,205,0.92)",
   },
 };
