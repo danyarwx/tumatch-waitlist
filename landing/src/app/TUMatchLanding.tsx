@@ -142,7 +142,7 @@ export default function TUMatchLanding() {
 
           .heroBadge {
             margin-top: -10px !important;
-            margin-bottom: 20px !important;
+            margin-bottom: 40px !important;
           }
 
           .heroTitleLine1,
