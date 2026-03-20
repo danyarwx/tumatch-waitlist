@@ -60,11 +60,9 @@ export default function TUMatchLanding() {
       {/* center stage */}
       <main style={styles.main}>
         <div style={styles.stage}>
-          {/* “globe” visual */}
-          <div style={styles.globeWrap} aria-hidden="true">
-            <div style={styles.globe} />
-            <div style={styles.arc1} />
-            <div style={styles.arc2} />
+          {/* vertical line visual */}
+          <div style={styles.lineField} aria-hidden="true">
+            <div style={styles.lineFieldGlow} />
           </div>
 
           {/* hero */}
@@ -360,49 +358,36 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "none",
   },
 
-  // globe visual
-  globeWrap: {
+  // background line field
+  lineField: {
     position: "absolute",
     inset: 0,
     pointerEvents: "none",
-    opacity: 0.95,
+    opacity: 0.88,
+    backgroundImage: `
+      repeating-linear-gradient(
+        90deg,
+        rgba(255,255,255,0.055) 0px,
+        rgba(255,255,255,0.055) 1px,
+        transparent 1px,
+        transparent 72px
+      ),
+      repeating-linear-gradient(
+        90deg,
+        rgba(255,0,61,0.035) 0px,
+        rgba(255,0,61,0.035) 1px,
+        transparent 1px,
+        transparent 216px
+      )
+    `,
+    backgroundPosition: "center top",
   },
-  globe: {
+  lineFieldGlow: {
     position: "absolute",
-    width: "min(560px, 86vw)",
-    height: "min(560px, 86vw)",
-    borderRadius: "50%",
-    left: "50%",
-    top: "50%",
-    transform: "translate(-50%, -50%)",
+    inset: 0,
     background:
-      "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.09), rgba(255,255,255,0.02) 58%, rgba(0,0,0,0) 72%)",
-    border: "1px solid rgba(255,255,255,0.10)",
-    boxShadow: "0 0 70px rgba(0,0,0,0.65) inset, 0 0 90px rgba(120,200,255,0.06)",
-  },
-  arc1: {
-    position: "absolute",
-    width: "min(760px, 100vw)",
-    height: "min(760px, 100vw)",
-    borderRadius: "50%",
-    left: "50%",
-    top: "50%",
-    transform: "translate(-50%, -50%)",
-    border: "2px solid rgba(80,180,255,0.14)",
-    borderLeftColor: "transparent",
-    borderBottomColor: "transparent",
-  },
-  arc2: {
-    position: "absolute",
-    width: "min(700px, 92vw)",
-    height: "min(700px, 92vw)",
-    borderRadius: "50%",
-    left: "50%",
-    top: "50%",
-    transform: "translate(-50%, -50%) rotate(18deg)",
-    border: "2px solid rgba(255,0,61,0.12)",
-    borderRightColor: "transparent",
-    borderBottomColor: "transparent",
+      "linear-gradient(180deg, rgba(7,10,15,0.18) 0%, rgba(7,10,15,0.04) 38%, rgba(7,10,15,0.28) 100%), radial-gradient(circle at center, rgba(255,255,255,0.08), rgba(255,255,255,0.02) 34%, rgba(0,0,0,0) 68%)",
+    boxShadow: "inset 0 0 90px rgba(0,0,0,0.45)",
   },
   // hero content
   hero: {
