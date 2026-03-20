@@ -1,14 +1,17 @@
 "use client";
 import React, { useMemo, useState } from "react";
 
+const CAMPUS_OPTIONS = ["TUM", "HHN", "42"] as const;
+
 export default function TUMatchLanding() {
   const [email, setEmail] = useState("");
+  const [campus, setCampus] = useState<((typeof CAMPUS_OPTIONS)[number]) | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
 
-  const isTumEmail = useMemo(() => {
-    const e = email.trim().toLowerCase();
-    return e.endsWith("@tum.de") || e.endsWith("@mytum.de");
+  const isValidEmail = useMemo(() => {
+    const clean = email.trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean);
   }, [email]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -21,29 +24,24 @@ export default function TUMatchLanding() {
       setMessage("Enter a valid email.");
       return;
     }
-    if (!(clean.endsWith("@tum.de") || clean.endsWith("@mytum.de"))) {
-      setStatus("error");
-      setMessage("Use your TUM email (@tum.de or @mytum.de).");
-      return;
-    }
 
     setStatus("loading");
     try {
-		const res = await fetch("/api/waitlist", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ email: clean }),
-		});
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: clean, campus }),
+      });
 
-		const data = await res.json();
+      const data = await res.json();
 
-		if (!res.ok) {
-			setStatus("error");
-			setMessage(data?.error ?? "Something went wrong.");
-			return;
-		}
+      if (!res.ok) {
+        setStatus("error");
+        setMessage(data?.error ?? "Something went wrong.");
+        return;
+      }
       setStatus("success");
       setMessage("We will notify you when we launch!");
       setEmail("");
@@ -72,7 +70,7 @@ export default function TUMatchLanding() {
           {/* hero */}
           <section className="heroSection" style={styles.hero}>
             <div className="heroBadge" style={styles.badge}>
-              <span style={styles.badgeText}>Early Access</span>
+              <span style={styles.badgeText}>Join Waitlist</span>
             </div>
 
             <h1 className="heroTitle" style={styles.hottest}>
@@ -85,35 +83,67 @@ export default function TUMatchLanding() {
             <p className="heroSub" style={styles.sub}>
               Scroll what’s happening in Heilbronn in the next 24 hours.
             </p>
-            <p className="heroStatementSoft" style={styles.statementSoft}>Join events & meet new people today.</p>
+            <p className="heroSub" style={styles.sub}>
+              Join events & meet new people today.
+            </p>
 
             <form className="heroForm" onSubmit={onSubmit} style={styles.form}>
-              <div className="heroInputRow" style={styles.inputRow}>
-                <input
-                  value={email}
-                  onChange={(e) => {
-                    setStatus("idle");
-                    setMessage("");
-                    setEmail(e.target.value);
-                  }}
-                  placeholder="your.name@tum.de"
-                  type="email"
-                  autoComplete="email"
-                  className="heroInput"
-                  style={styles.input}
-                />
-                <button
-                  type="submit"
-                  disabled={!email.trim() || !isTumEmail || status === "loading"}
-                  className="heroButton"
-                  style={{
-                    ...styles.button,
-                    ...((!email.trim() || !isTumEmail) ? styles.buttonDisabled : {}),
-                  }}
-                >
-                  {status === "loading" ? "Checking…" : "Request access"}
-                </button>
+              <div style={styles.selectionSection}>
+                <p style={styles.selectionLabel}>Choose your uni</p>
+                <div className="heroCampusButtons" style={styles.campusButtons}>
+                  {CAMPUS_OPTIONS.map((option) => {
+                    const isSelected = campus === option;
+
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setStatus("idle");
+                          setMessage("");
+                          setCampus(option);
+                        }}
+                        className={`heroCampusButton${isSelected ? " isSelected" : ""}`}
+                        style={{
+                          ...styles.campusButton,
+                          ...(isSelected ? styles.campusButtonSelected : {}),
+                        }}
+                        aria-pressed={isSelected}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+              {campus && (
+                <div className="heroInputRow heroInputRowReveal" style={styles.inputRow}>
+                  <input
+                    value={email}
+                    onChange={(e) => {
+                      setStatus("idle");
+                      setMessage("");
+                      setEmail(e.target.value);
+                    }}
+                    placeholder="your campus email"
+                    type="email"
+                    autoComplete="email"
+                    className="heroInput"
+                    style={styles.input}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!email.trim() || !isValidEmail || status === "loading"}
+                    className="heroButton"
+                    style={{
+                      ...styles.button,
+                      ...((!email.trim() || !isValidEmail) ? styles.buttonDisabled : {}),
+                    }}
+                  >
+                    {status === "loading" ? "Checking…" : "Request access"}
+                  </button>
+                </div>
+              )}
             </form>
             {message && (
               <p
@@ -126,6 +156,7 @@ export default function TUMatchLanding() {
                 {message}
               </p>
             )}
+            <p style={styles.footerBrand}>tumatch</p>
           </section>
         </div>
       </main>
@@ -188,11 +219,23 @@ export default function TUMatchLanding() {
             gap: 12px !important;
           }
 
+          .heroCampusButtons {
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 12px !important;
+          }
+
           .heroInput {
             width: 100% !important;
             min-width: 0 !important;
             height: 48px !important;
             font-size: 16px !important;
+            box-sizing: border-box !important;
+          }
+
+          .heroCampusButton {
+            width: 100% !important;
+            min-width: 0 !important;
+            min-height: 58px !important;
             box-sizing: border-box !important;
           }
 
@@ -203,6 +246,48 @@ export default function TUMatchLanding() {
             align-items: center !important;
             justify-content: center !important;
             font-size: 18px !important;
+          }
+        }
+
+        .heroCampusButton {
+          transition:
+            transform 240ms ease,
+            box-shadow 240ms ease,
+            border-color 240ms ease,
+            background-color 240ms ease,
+            color 240ms ease;
+        }
+
+        .heroCampusButton:hover {
+          transform: scale(1.03);
+          border-color: rgba(255, 0, 61, 0.5);
+          box-shadow: 0 0 22px rgba(255, 0, 61, 0.22);
+          background: rgba(255, 0, 61, 0.08);
+        }
+
+        .heroCampusButton.isSelected {
+          border-color: rgba(255, 70, 110, 0.95);
+          color: rgba(255, 244, 247, 0.98);
+          background: linear-gradient(180deg, rgba(255, 0, 61, 0.24), rgba(255, 0, 61, 0.16));
+          box-shadow:
+            0 0 30px rgba(255, 0, 61, 0.34),
+            0 0 54px rgba(255, 0, 61, 0.16),
+            inset 0 0 0 1px rgba(255, 140, 170, 0.22);
+        }
+
+        .heroInputRowReveal {
+          animation: fadeUpIn 260ms ease;
+        }
+
+        @keyframes fadeUpIn {
+          from {
+            opacity: 0;
+            transform: translateY(8px);
+          }
+
+          to {
+            opacity: 1;
+            transform: translateY(0);
           }
         }
       `}</style>
@@ -401,6 +486,44 @@ const styles: Record<string, React.CSSProperties> = {
     marginLeft: "auto",
     marginRight: "auto",
   },
+  selectionSection: {
+    marginBottom: 14,
+  },
+  selectionLabel: {
+    margin: "0 0 12px",
+    fontSize: 13,
+    fontWeight: 700,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    color: "rgba(230,232,238,0.62)",
+  },
+  campusButtons: {
+    display: "grid",
+    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+    gap: 10,
+  },
+  campusButton: {
+    minHeight: 64,
+    padding: "0 20px",
+    borderRadius: 999,
+    border: "1px solid rgba(255,255,255,0.14)",
+    background: "rgba(255,255,255,0.03)",
+    color: "rgba(230,232,238,0.9)",
+    fontSize: 18,
+    fontWeight: 900,
+    letterSpacing: 0.2,
+    cursor: "pointer",
+    outline: "none",
+    boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.02)",
+  },
+  campusButtonSelected: {
+    transform: "scale(1.03)",
+    background: "linear-gradient(180deg, rgba(255, 0, 61, 0.24), rgba(255, 0, 61, 0.16))",
+    border: "1px solid rgba(255, 70, 110, 0.95)",
+    color: "rgba(255,244,247,0.98)",
+    boxShadow:
+      "0 0 30px rgba(255, 0, 61, 0.34), 0 0 54px rgba(255, 0, 61, 0.16), inset 0 0 0 1px rgba(255, 140, 170, 0.22)",
+  },
   inputRow: {
     display: "flex",
     gap: 10,
@@ -452,5 +575,15 @@ const styles: Record<string, React.CSSProperties> = {
   },
   formMessageError: {
     color: "rgba(255,190,205,0.92)",
+  },
+  footerBrand: {
+    margin: "56px 0 0",
+    fontSize: "clamp(18px, 2vw, 22px)",
+    fontWeight: 950,
+    letterSpacing: 0.4,
+    textTransform: "none",
+    color: "rgba(245,247,252,0.96)",
+    textShadow: "0 0 16px rgba(255,255,255,0.42), 0 0 34px rgba(255,255,255,0.2)",
+    opacity: 0.94,
   },
 };
